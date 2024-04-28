@@ -3,7 +3,7 @@ from src.db.connect import connect
 from src.routers.router import register_blueprints
 
 
-# 创建 Flask 应用
+# 创建 Flask  应用
 def create_app():
     app = Flask(__name__)
     register_blueprints(app)
