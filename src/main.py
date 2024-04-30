@@ -8,6 +8,7 @@ def create_app():
     app = Flask(__name__)
     register_blueprints(app)
     # 将数据库连接存储在应用上下文中
+
     with app.app_context():
         app.db = connect()
     return app

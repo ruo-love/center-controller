@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, current_app as app
 from src.common.helper import get_uuid
-from src.common.jwt import token_required
+from src.common.jwt import token_required, role_required
 # 创建用户蓝图
 user_bp = Blueprint('user', __name__)
 
@@ -8,10 +8,10 @@ user_bp = Blueprint('user', __name__)
 # 定义路由：获取所有用户
 @user_bp.route('/users', methods=['GET'])
 @token_required
-def get_users():
+@role_required(required_role='admin')
+def get_users(decoded_token):
     users_collection = app.db['users']
     users = list(users_collection.find())
-    print(users)
     return {'users': users}
 
 
@@ -51,10 +51,11 @@ def get_user(user_id):
 
 
 # 根据用户ID更新用户信息
-@user_bp.route('/users/<user_id>', methods=['PUT'])
+@user_bp.route('/users', methods=['PUT'])
 @token_required
-def update_user(user_id):
+def update_user(decoded_token):
     data = request.json
+    user_id = decoded_token.get('_id')
     users_collection = app.db['users']
     user = users_collection.find_one({'_id': user_id})
     if user:

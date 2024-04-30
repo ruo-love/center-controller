@@ -15,7 +15,7 @@ def login():
     users_collection = app.db['users']
     user = users_collection.find_one({'email': email, 'password': password})
     if user:
-        token = jwt.encode({'email': email, 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)},
+        token = jwt.encode({'email': email, '_id': user['_id'], 'roles':user['roles'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)},
                            SECRET_KEY, algorithm='HS256')
         return jsonify({'message': 'Login successful', "data": user, "token": token}), 200
     else:

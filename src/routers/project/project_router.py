@@ -1,6 +1,8 @@
+import datetime
+
 from flask import Blueprint, jsonify, request, current_app as app
 from src.common.helper import get_uuid
-from src.common.jwt import SECRET_KEY, token_required
+from src.common.jwt import SECRET_KEY, token_required,role_required
 from src.common.secript import RunProject
 # 创建用户蓝图
 project_bp = Blueprint('project', __name__)
@@ -16,25 +18,27 @@ def get_projects():
 # 定义路由：创建项目
 @project_bp.route('/project', methods=['POST'])
 @token_required
-def create_project():
+@role_required(required_role='admin')
+def create_project(decoded_token):
     data = request.json
     project_name = data.get('project_name')
     project_display_name = data.get('project_display_name')
     description = data.get('description')
-    types = data.get('types')
+    type = data.get('type')
     source_path = data.get('source_path')
+    terminal_path = data.get('terminal_path')
     options = data.get('options')
-    create_time = data.get('create_time')
-    update_time = data.get('create_time')
+    create_time = datetime.datetime.utcnow()
+    update_time = datetime.datetime.utcnow()
     github_url = data.get('github_url')
-    if project_name and project_display_name and description and types and source_path and options and create_time and update_time and github_url:
+    if project_name and project_display_name and description and type and source_path and terminal_path and options and create_time and update_time and github_url:
         projects_collection = app.db['projects']
         project_data = {
             '_id': get_uuid(),
             'project_name': project_name,
             'project_display_name': project_display_name,
             'description': description,
-            'types': types,
+            'type': type,
             'source_path': source_path,
             'options': options,
             'create_time': create_time,
@@ -62,19 +66,19 @@ def update_project(project_id):
     project_name = data.get('project_name')
     project_display_name = data.get('project_display_name')
     description = data.get('description')
-    types = data.get('types')
+    type = data.get('type')
     source_path = data.get('source_path')
     options = data.get('options')
     create_time = data.get('create_time')
     update_time = data.get('create_time')
     github_url = data.get('github_url')
-    if project_name and project_display_name and description and types and source_path and options and create_time and update_time and github_url:
+    if project_name and project_display_name and description and type and source_path and options and create_time and update_time and github_url:
         projects_collection = app.db['projects']
         project_data = {
             'project_name': project_name,
             'project_display_name': project_display_name,
             'description': description,
-            'types': types,
+            'type': type,
             'source_path': source_path,
             'options': options,
             'create_time': create_time,
@@ -97,9 +101,13 @@ def delete_project(project_id):
 # 定义路由：运行项目
 @project_bp.route('/project/<project_id>/run', methods=['POST'])
 @token_required
-def run_project(project_id):
+def run_project(project_id, decoded_token):
+
     projects_collection = app.db['projects']
+
     project = projects_collection.find_one({'_id': project_id})
+    print(project)
     runner = RunProject(project)
     runner.run()
     return jsonify({'message': 'Project running', 'project_id': str(project)}), 200
+
