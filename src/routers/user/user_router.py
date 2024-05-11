@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, current_app as app
 from src.common.helper import get_uuid
 from src.common.jwt import token_required, role_required
 # 创建用户蓝图
-user_bp = Blueprint('user', __name__)
+user_bp = Blueprint('user', __name__, url_prefix='/api')
 
 
 # 定义路由：获取所有用户

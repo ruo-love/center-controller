@@ -4,7 +4,7 @@ from src.common.jwt import SECRET_KEY, token_required
 import jwt
 import datetime
 # 创建用户蓝图
-auth_bp = Blueprint('auth', __name__)
+auth_bp = Blueprint('auth', __name__, url_prefix='/api')
 
 # 定义路由：用户登录 返回token 用户信息
 @auth_bp.route('/login', methods=['POST'])
@@ -12,12 +12,13 @@ def login():
     data = request.json
     email = data.get('email')
     password = data.get('password')
+    print(email)
     users_collection = app.db['users']
     user = users_collection.find_one({'email': email, 'password': password})
     if user:
-        token = jwt.encode({'email': email, '_id': user['_id'], 'roles':user['roles'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)},
+        token = jwt.encode({'_id': user['_id'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1)},
                            SECRET_KEY, algorithm='HS256')
-        return jsonify({'message': 'Login successful', "data": user, "token": token}), 200
+        return jsonify({'message': '登录成功', "data": user, "token": token}), 200
     else:
         return jsonify({'error': 'Invalid credentials'}), 401
 
